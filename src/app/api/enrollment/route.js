@@ -15,7 +15,7 @@ export const GET = async (request) => {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     studentId = payload.studentId;
-
+    role = payload.role;
     //read role information from "payload" here (just one line code!)
     //role = ...
   } catch {
@@ -27,7 +27,12 @@ export const GET = async (request) => {
       { status: 401 }
     );
   }
-
+  if (role === "ADMIN") {
+    return NextResponse.json({
+      ok: true,
+      enrollments: DB.enrollments,
+    });
+  }
   //Check role here. If user is "ADMIN" show all of the enrollments instead
   //   return NextResponse.json({
   //     ok: true,
@@ -57,6 +62,7 @@ export const POST = async (request) => {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     studentId = payload.studentId;
+    role = payload.role;
     //read role information from "payload" here (just one line code!)
     //role = ...
   } catch {
@@ -68,7 +74,15 @@ export const POST = async (request) => {
       { status: 401 }
     );
   }
-
+  if (role === "ADMIN") {
+    return NextResponse.json(
+      {
+        ok: true,
+        message: "Only Student can access this API route",
+      },
+      { status: 403 }
+    );
+  }
   //if role is "ADMIN", send the following response
   // return NextResponse.json(
   //   {
@@ -129,9 +143,34 @@ export const POST = async (request) => {
 export const DELETE = async (request) => {
   //check token
   //verify token and get "studentId" and "role" information here
+  const rawAuthHeader = headers().get("authorization");
+  const token = rawAuthHeader.split(" ")[1];
   let studentId = null;
   let role = null;
-
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    studentId = payload.studentId;
+    role = payload.role;
+    //read role information from "payload" here (just one line code!)
+    //role = ...
+  } catch {
+    return NextResponse.json(
+      {
+        ok: false,
+        message: "Invalid token",
+      },
+      { status: 401 }
+    );
+  }
+  if (role === "ADMIN") {
+    return NextResponse.json(
+      {
+        ok: true,
+        message: "Only Student can access this API route",
+      },
+      { status: 403 }
+    );
+  }
   //if role is "ADMIN", send the following response
   // return NextResponse.json(
   //   {
